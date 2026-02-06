@@ -18,7 +18,14 @@ const Signup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const isFormValid = formData.name && formData.email && formData.password && formData.password === formData.confirmPassword;
+  const passwordChecks = {
+    length: formData.password.length >= 8,
+    uppercase: /[A-Z]/.test(formData.password),
+    number: /[0-9]/.test(formData.password),
+    special: /[@#$!%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password),
+  };
+  const isPasswordStrong = Object.values(passwordChecks).every(Boolean);
+  const isFormValid = formData.name && formData.email && isPasswordStrong && formData.password === formData.confirmPassword;
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +127,20 @@ const Signup = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {formData.password && (
+                <div className="grid grid-cols-2 gap-1.5 text-xs mt-1.5">
+                  {[
+                    { key: "length" as const, label: "8+ characters" },
+                    { key: "uppercase" as const, label: "Uppercase letter" },
+                    { key: "number" as const, label: "Number" },
+                    { key: "special" as const, label: "Special char (@#$...)" },
+                  ].map(({ key, label }) => (
+                    <span key={key} className={passwordChecks[key] ? "text-green-400" : "text-muted-foreground"}>
+                      {passwordChecks[key] ? "✓" : "○"} {label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Confirm Password Field */}
