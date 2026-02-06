@@ -1,22 +1,10 @@
 import { Trophy, CheckCircle, Circle, Star } from "lucide-react";
-
-interface QuestItem {
-  id: number;
-  title: string;
-  completed: boolean;
-  points: number;
-}
+import { useDashboard } from "@/contexts/DashboardContext";
 
 const WeeklyQuest = () => {
-  const quests: QuestItem[] = [
-    { id: 1, title: "Enable Two-Factor Authentication", completed: true, points: 50 },
-    { id: 2, title: "Update your recovery email", completed: true, points: 30 },
-    { id: 3, title: "Review app permissions", completed: false, points: 40 },
-    { id: 4, title: "Complete security quiz", completed: false, points: 25 },
-  ];
+  const { quests, toggleQuest, safetyScore } = useDashboard();
 
   const completedCount = quests.filter((q) => q.completed).length;
-  const totalPoints = quests.filter((q) => q.completed).reduce((sum, q) => sum + q.points, 0);
 
   return (
     <div className="glass-glow-orange rounded-2xl p-5 h-full flex flex-col">
@@ -27,12 +15,12 @@ const WeeklyQuest = () => {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">Weekly Quest</h2>
-            <p className="text-xs text-muted-foreground">Complete tasks to earn points</p>
+            <p className="text-xs text-muted-foreground">Complete tasks to boost score</p>
           </div>
         </div>
         <div className="flex items-center gap-1 px-3 py-1 bg-accent/20 rounded-full">
           <Star className="w-4 h-4 text-accent" />
-          <span className="text-sm font-bold text-accent">{totalPoints}</span>
+          <span className="text-sm font-bold text-accent">{safetyScore}</span>
         </div>
       </div>
 
@@ -58,6 +46,7 @@ const WeeklyQuest = () => {
         {quests.map((quest) => (
           <div
             key={quest.id}
+            onClick={() => toggleQuest(quest.id)}
             className={`flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-muted/30 cursor-pointer ${
               quest.completed ? "opacity-70" : ""
             }`}

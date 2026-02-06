@@ -1,23 +1,28 @@
-import { useState } from "react";
 import { Bot, Send, Sparkles } from "lucide-react";
+import { useDashboard } from "@/contexts/DashboardContext";
+import { useState } from "react";
 
 const AISecurityAdvisor = () => {
+  const { userName, advisorMessages, addAdvisorMessage } = useDashboard();
   const [message, setMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
 
   const handleSend = () => {
     if (!message.trim()) return;
-    setIsTyping(true);
+    const text = message.toLowerCase();
     setMessage("");
-    
-    setTimeout(() => {
-      setIsTyping(false);
-    }, 2000);
+
+    // Simple AI-like response
+    if (text.includes("http") || text.includes("scam") || text.includes(".exe")) {
+      addAdvisorMessage("Bhai, yeh link khatarnak lag raha hai, dur raho! 🚨");
+    } else if (text.includes("password")) {
+      addAdvisorMessage("Strong password use karo — mix of letters, numbers aur symbols. 🔐");
+    } else {
+      addAdvisorMessage("Sab sahi hai, tension mat lo. ✅");
+    }
   };
 
   return (
     <div className="glass-glow-cyan rounded-2xl p-5 h-full flex flex-col animate-float">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="relative">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
@@ -33,40 +38,32 @@ const AISecurityAdvisor = () => {
         </div>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col justify-end space-y-3">
-        {/* AI Message Bubble */}
+      <div className="flex-1 flex flex-col justify-end space-y-3 overflow-y-auto max-h-48">
+        {/* Welcome message */}
         <div className="flex gap-2">
           <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
             <Bot className="w-4 h-4 text-primary" />
           </div>
           <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 max-w-[85%]">
             <p className="text-sm text-foreground">
-              Hey Aniket! Found a suspicious email? Paste it here, I'll explain if it's safe! 😊
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              I can analyze links, emails, and text for security threats.
+              Hey {userName}! Suspicious link ya email paste karo, main batata hoon safe hai ya nahi! 😊
             </p>
           </div>
         </div>
 
-        {isTyping && (
-          <div className="flex gap-2">
+        {/* Dynamic messages from scans */}
+        {advisorMessages.map((msg, i) => (
+          <div key={i} className="flex gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
               <Bot className="w-4 h-4 text-primary" />
             </div>
-            <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
+            <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 max-w-[85%]">
+              <p className="text-sm text-foreground">{msg}</p>
             </div>
           </div>
-        )}
+        ))}
       </div>
 
-      {/* Input Area */}
       <div className="mt-4 flex gap-2">
         <input
           type="text"
@@ -80,9 +77,7 @@ const AISecurityAdvisor = () => {
           onClick={handleSend}
           disabled={!message.trim()}
           className="p-3 bg-gradient-to-r from-primary to-accent rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            boxShadow: message.trim() ? "0 0 15px hsl(var(--primary) / 0.4)" : "none",
-          }}
+          style={{ boxShadow: message.trim() ? "0 0 15px hsl(var(--primary) / 0.4)" : "none" }}
         >
           <Send className="w-5 h-5 text-primary-foreground" />
         </button>

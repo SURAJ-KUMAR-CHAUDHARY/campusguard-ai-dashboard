@@ -27,6 +27,7 @@ const Signup = () => {
     setIsLoading(true);
     
     setTimeout(() => {
+      localStorage.setItem("campusguard_user", JSON.stringify({ email: formData.email, name: formData.name }));
       setIsExiting(true);
       setTimeout(() => {
         navigate("/dashboard");
