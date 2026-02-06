@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Shield, Mail, Lock, User, Eye, EyeOff, Sparkles, ArrowRight, GraduationCap } from "lucide-react";
+import { Shield, Mail, Lock, User, Eye, EyeOff, Sparkles, ArrowRight } from "lucide-react";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ const Signup = () => {
 
             {/* Email Field */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Student Email</label>
+              <label className="text-sm font-medium text-foreground">Email</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
@@ -92,7 +92,7 @@ const Signup = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="your.name@university.edu"
+                  placeholder="you@example.com"
                   className="w-full pl-12 pr-4 py-3.5 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                 />
               </div>
@@ -181,8 +181,8 @@ const Signup = () => {
           </div>
           <div className="w-1 h-1 bg-muted-foreground rounded-full" />
           <div className="flex items-center gap-1">
-            <GraduationCap className="w-3.5 h-3.5 text-primary" />
-            <span>Student Focused</span>
+            <Shield className="w-3.5 h-3.5 text-primary" />
+            <span>End-to-End Encrypted</span>
           </div>
         </div>
       </div>
