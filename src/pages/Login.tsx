@@ -18,8 +18,9 @@ const Login = () => {
     
     setIsLoading(true);
     
-    // Simulate login then transition
+    // Store user info and transition
     setTimeout(() => {
+      localStorage.setItem("campusguard_user", JSON.stringify({ email, name: email.split("@")[0] }));
       setIsExiting(true);
       setTimeout(() => {
         navigate("/dashboard");
@@ -30,6 +31,7 @@ const Login = () => {
   const handleGoogleLogin = () => {
     setIsLoading(true);
     setTimeout(() => {
+      localStorage.setItem("campusguard_user", JSON.stringify({ email: "user@gmail.com", name: "Google User" }));
       setIsExiting(true);
       setTimeout(() => {
         navigate("/dashboard");

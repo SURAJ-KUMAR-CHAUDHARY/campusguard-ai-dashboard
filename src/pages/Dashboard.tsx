@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DashboardProvider, useDashboard } from "@/contexts/DashboardContext";
 import Header from "@/components/dashboard/Header";
 import QuickScan from "@/components/dashboard/QuickScan";
 import DigitalHealthCheckup from "@/components/dashboard/DigitalHealthCheckup";
@@ -35,14 +36,12 @@ const StatCard = ({ title, value, change, color }: StatCardProps) => {
   );
 };
 
-const Dashboard = () => {
+const DashboardContent = () => {
   const [isEntering, setIsEntering] = useState(true);
+  const { userName, safetyScore, scansCompleted, threatsBlocked } = useDashboard();
 
   useEffect(() => {
-    // Trigger entrance animation
-    const timer = setTimeout(() => {
-      setIsEntering(false);
-    }, 100);
+    const timer = setTimeout(() => setIsEntering(false), 100);
     return () => clearTimeout(timer);
   }, []);
 
@@ -53,55 +52,43 @@ const Dashboard = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
-        {/* Header */}
-        <Header safetyScore={92} userName="Aniket Sharma" />
+        <Header safetyScore={safetyScore} userName={userName} />
 
-        {/* Main Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column - Quick Scan */}
           <div className="lg:col-span-4">
             <QuickScan />
           </div>
-
-          {/* Center Column - Digital Health */}
           <div className="lg:col-span-4">
             <DigitalHealthCheckup />
           </div>
-
-          {/* Right Column - Weekly Quest */}
           <div className="lg:col-span-4">
             <WeeklyQuest />
           </div>
         </div>
 
-        {/* Alerts Section */}
         <AlertsSection />
 
-        {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Stats Cards */}
           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <StatCard
               title="Threats Blocked"
-              value="147"
-              change="+12 this week"
+              value={String(threatsBlocked)}
+              change="From scans"
               color="primary"
             />
             <StatCard
               title="Scans Completed"
-              value="89"
-              change="Last: 2 hrs ago"
+              value={String(scansCompleted)}
+              change="Total scans"
               color="success"
             />
             <StatCard
-              title="Security Level"
-              value="Pro"
-              change="Premium features"
+              title="Safety Score"
+              value={`${safetyScore}%`}
+              change="Complete quests to improve"
               color="accent"
             />
           </div>
-
-          {/* AI Security Advisor */}
           <div className="lg:col-span-1">
             <AISecurityAdvisor />
           </div>
@@ -110,5 +97,11 @@ const Dashboard = () => {
     </div>
   );
 };
+
+const Dashboard = () => (
+  <DashboardProvider>
+    <DashboardContent />
+  </DashboardProvider>
+);
 
 export default Dashboard;
