@@ -69,9 +69,11 @@ export const useDashboard = () => {
 
 export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const stored = loadState();
+
+  // Try auth context first, fall back to localStorage
   const userInfo = JSON.parse(localStorage.getItem("campusguard_user") || "{}");
 
-  const [userName] = useState<string>(userInfo.name || userInfo.email?.split("@")[0] || "Guest User");
+  const [userName] = useState<string>(userInfo.name || "Guest User");
   const [userEmail] = useState<string>(userInfo.email || "");
   const [quests, setQuests] = useState<QuestItem[]>(stored.quests || defaultQuests);
   const [alerts, setAlerts] = useState<AlertItem[]>(stored.alerts || []);

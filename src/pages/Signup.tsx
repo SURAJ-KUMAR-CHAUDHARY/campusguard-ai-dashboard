@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Shield, Mail, Lock, User, Eye, EyeOff, Sparkles, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const Signup = () => {
   const isPasswordStrong = Object.values(passwordChecks).every(Boolean);
   const isFormValid = formData.name && formData.email && isPasswordStrong && formData.password === formData.confirmPassword;
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
       setShakePassword(true);
@@ -37,16 +38,35 @@ const Signup = () => {
       toast.error("Security Alert: A strong password is required to access this dashboard.");
       return;
     }
-    
+
     setIsLoading(true);
-    
-    setTimeout(() => {
-      localStorage.setItem("campusguard_user", JSON.stringify({ email: formData.email, name: formData.name }));
-      setIsExiting(true);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 500);
-    }, 1200);
+    const { data, error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          full_name: formData.name,
+        },
+      },
+    });
+
+    if (error) {
+      setIsLoading(false);
+      toast.error(error.message);
+      return;
+    }
+
+    // Check if email confirmation is required
+    if (data.user && !data.session) {
+      setIsLoading(false);
+      toast.success("Account created! Please check your email to verify your account before signing in.");
+      return;
+    }
+
+    localStorage.setItem("campusguard_user", JSON.stringify({ email: formData.email, name: formData.name }));
+    setIsExiting(true);
+    setTimeout(() => navigate("/dashboard"), 500);
   };
 
   return (
@@ -91,7 +111,7 @@ const Signup = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="Aniket Sharma"
+                  placeholder="Your full name"
                   className="w-full pl-12 pr-4 py-3.5 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                 />
               </div>
