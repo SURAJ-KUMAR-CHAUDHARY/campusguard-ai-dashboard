@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Shield, Mail, Lock, User, Eye, EyeOff, Sparkles, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [shakePassword, setShakePassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,7 +31,12 @@ const Signup = () => {
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isFormValid) {
+      setShakePassword(true);
+      setTimeout(() => setShakePassword(false), 400);
+      toast.error("Security Alert: A strong password is required to access this dashboard.");
+      return;
+    }
     
     setIsLoading(true);
     
@@ -109,7 +116,7 @@ const Signup = () => {
             {/* Password Field */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Password</label>
-              <div className="relative">
+              <div className={`relative ${shakePassword ? "animate-shake" : ""}`}>
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type={showPassword ? "text" : "password"}
@@ -135,8 +142,8 @@ const Signup = () => {
                     { key: "number" as const, label: "Number" },
                     { key: "special" as const, label: "Special char (@#$...)" },
                   ].map(({ key, label }) => (
-                    <span key={key} className={passwordChecks[key] ? "text-green-400" : "text-muted-foreground"}>
-                      {passwordChecks[key] ? "✓" : "○"} {label}
+                    <span key={key} className={passwordChecks[key] ? "text-success" : "text-destructive"}>
+                      {passwordChecks[key] ? "✓" : "✗"} {label}
                     </span>
                   ))}
                 </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Shield, Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight } from "lucide-react";
 import ForgotPasswordDialog from "@/components/auth/ForgotPasswordDialog";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -11,14 +12,25 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [shakePassword, setShakePassword] = useState(false);
+
+  const passwordChecks = {
+    length: password.length >= 8,
+    number: /[0-9]/.test(password),
+    special: /[@#$!%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+  };
+  const isPasswordValid = Object.values(passwordChecks).every(Boolean);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
-    
+    if (!email || !isPasswordValid) {
+      setShakePassword(true);
+      setTimeout(() => setShakePassword(false), 400);
+      toast.error("Security Alert: A strong password is required to access this dashboard.");
+      return;
+    }
+
     setIsLoading(true);
-    
-    // Store user info and transition
     setTimeout(() => {
       localStorage.setItem("campusguard_user", JSON.stringify({ email, name: email.split("@")[0] }));
       setIsExiting(true);
@@ -94,7 +106,7 @@ const Login = () => {
             {/* Password Field */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Password</label>
-              <div className="relative">
+              <div className={`relative ${shakePassword ? "animate-shake" : ""}`}>
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type={showPassword ? "text" : "password"}
@@ -111,6 +123,19 @@ const Login = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {password && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-1.5">
+                  {[
+                    { key: "length" as const, label: "8+ Characters" },
+                    { key: "number" as const, label: "Includes Number" },
+                    { key: "special" as const, label: "Includes Symbol" },
+                  ].map(({ key, label }) => (
+                    <span key={key} className={passwordChecks[key] ? "text-success" : "text-destructive"}>
+                      {passwordChecks[key] ? "✓" : "✗"} {label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Forgot Password Link */}
@@ -127,10 +152,10 @@ const Login = () => {
             {/* Login Button */}
             <button
               type="submit"
-              disabled={isLoading || !email || !password}
+              disabled={isLoading || !email || !isPasswordValid}
               className="w-full py-4 px-6 bg-gradient-to-r from-primary to-accent text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
               style={{
-                boxShadow: "0 0 25px hsl(var(--primary) / 0.4)",
+                boxShadow: !email || !isPasswordValid ? "none" : "0 0 25px hsl(var(--primary) / 0.4)",
               }}
             >
               {isLoading ? (
