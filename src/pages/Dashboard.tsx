@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { DashboardProvider, useDashboard } from "@/contexts/DashboardContext";
 import Header from "@/components/dashboard/Header";
 import QuickScan from "@/components/dashboard/QuickScan";
@@ -98,10 +100,31 @@ const DashboardContent = () => {
   );
 };
 
-const Dashboard = () => (
-  <DashboardProvider>
-    <DashboardContent />
-  </DashboardProvider>
-);
+const Dashboard = () => {
+  const { user, loading, profile } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/login", { replace: true });
+    }
+    // Sync profile to localStorage for DashboardContext
+    if (profile) {
+      localStorage.setItem("campusguard_user", JSON.stringify({
+        name: profile.display_name || "Guest User",
+        email: profile.email || "",
+      }));
+    }
+  }, [user, loading, profile, navigate]);
+
+  if (loading) return null;
+  if (!user) return null;
+
+  return (
+    <DashboardProvider>
+      <DashboardContent />
+    </DashboardProvider>
+  );
+};
 
 export default Dashboard;

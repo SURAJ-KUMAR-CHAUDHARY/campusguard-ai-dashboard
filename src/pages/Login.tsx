@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Shield, Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight } from "lucide-react";
 import ForgotPasswordDialog from "@/components/auth/ForgotPasswordDialog";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const Login = () => {
   };
   const isPasswordValid = Object.values(passwordChecks).every(Boolean);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !isPasswordValid) {
       setShakePassword(true);
@@ -31,24 +32,38 @@ const Login = () => {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      localStorage.setItem("campusguard_user", JSON.stringify({ email, name: email.split("@")[0] }));
-      setIsExiting(true);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 500);
-    }, 1000);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setIsLoading(false);
+      toast.error(error.message);
+      return;
+    }
+
+    // Store user info for dashboard context compatibility
+    const name = data.user?.user_metadata?.full_name || data.user?.user_metadata?.name || email.split("@")[0];
+    localStorage.setItem("campusguard_user", JSON.stringify({ email, name }));
+
+    setIsExiting(true);
+    setTimeout(() => navigate("/dashboard"), 500);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      localStorage.setItem("campusguard_user", JSON.stringify({ email: "user@gmail.com", name: "Google User" }));
-      setIsExiting(true);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 500);
-    }, 1500);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        queryParams: {
+          prompt: "select_account",
+        },
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+
+    if (error) {
+      setIsLoading(false);
+      toast.error(error.message);
+    }
   };
 
   return (
