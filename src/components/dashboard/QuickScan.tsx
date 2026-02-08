@@ -17,7 +17,7 @@ const QuickScan = () => {
       setIsScanning(false);
       incrementScans();
       const text = inputValue.toLowerCase();
-      const isThreat = text.includes("http") || text.includes("scam") || text.includes(".exe");
+      const isThreat = text.includes("http") || text.includes("scam") || text.includes(".exe") || text.includes("free");
 
       if (isThreat) {
         setScanResult("warning");

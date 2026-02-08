@@ -1,10 +1,20 @@
-import { Trophy, CheckCircle, Circle, Star } from "lucide-react";
+import { Trophy, CheckCircle, Circle, Star, Loader2, ShieldCheck } from "lucide-react";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { useState } from "react";
 
 const WeeklyQuest = () => {
-  const { quests, toggleQuest, safetyScore } = useDashboard();
+  const { quests, verifyQuest, safetyScore } = useDashboard();
+  const [verifyingId, setVerifyingId] = useState<number | null>(null);
 
   const completedCount = quests.filter((q) => q.completed).length;
+
+  const handleVerify = async (questId: number) => {
+    setVerifyingId(questId);
+    // Simulate verification delay
+    await new Promise((r) => setTimeout(r, 1500));
+    await verifyQuest(questId);
+    setVerifyingId(null);
+  };
 
   return (
     <div className="glass-glow-orange rounded-2xl p-5 h-full flex flex-col">
@@ -46,9 +56,8 @@ const WeeklyQuest = () => {
         {quests.map((quest) => (
           <div
             key={quest.id}
-            onClick={() => toggleQuest(quest.id)}
-            className={`flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-muted/30 cursor-pointer ${
-              quest.completed ? "opacity-70" : ""
+            className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+              quest.completed ? "opacity-70 bg-success/5" : ""
             }`}
           >
             {quest.completed ? (
@@ -63,7 +72,22 @@ const WeeklyQuest = () => {
             >
               {quest.title}
             </span>
-            <span className="text-xs text-accent">+{quest.points}</span>
+            {quest.completed ? (
+              <span className="text-xs text-success font-medium">✓ Done</span>
+            ) : (
+              <button
+                onClick={() => handleVerify(quest.id)}
+                disabled={verifyingId !== null}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-accent/20 text-accent hover:bg-accent/30 rounded-lg transition-all disabled:opacity-50"
+              >
+                {verifyingId === quest.id ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <ShieldCheck className="w-3 h-3" />
+                )}
+                {verifyingId === quest.id ? "Verifying..." : "Verify"}
+              </button>
+            )}
           </div>
         ))}
       </div>

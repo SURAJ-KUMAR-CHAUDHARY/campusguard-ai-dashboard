@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface AlertItem {
   id: number;
@@ -28,7 +30,7 @@ interface DashboardState {
 }
 
 interface DashboardContextType extends DashboardState {
-  toggleQuest: (id: number) => void;
+  verifyQuest: (id: number) => Promise<void>;
   addAlert: (alert: Omit<AlertItem, "id">) => void;
   clearAlerts: () => void;
   addAdvisorMessage: (msg: string) => void;
@@ -69,17 +71,36 @@ export const useDashboard = () => {
 
 export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const stored = loadState();
+  const { user, profile } = useAuth();
 
-  // Try auth context first, fall back to localStorage
-  const userInfo = JSON.parse(localStorage.getItem("campusguard_user") || "{}");
+  const userName = profile?.display_name || user?.user_metadata?.full_name || user?.user_metadata?.name || "Guest User";
+  const userEmail = profile?.email || user?.email || "";
 
-  const [userName] = useState<string>(userInfo.name || "Guest User");
-  const [userEmail] = useState<string>(userInfo.email || "");
   const [quests, setQuests] = useState<QuestItem[]>(stored.quests || defaultQuests);
   const [alerts, setAlerts] = useState<AlertItem[]>(stored.alerts || []);
   const [advisorMessages, setAdvisorMessages] = useState<string[]>(stored.advisorMessages || []);
   const [scansCompleted, setScansCompleted] = useState(stored.scansCompleted || 0);
   const [threatsBlocked, setThreatsBlocked] = useState(stored.threatsBlocked || 0);
+
+  // Load quest completion status from Supabase on mount
+  useEffect(() => {
+    if (!user) return;
+    const loadQuests = async () => {
+      const { data } = await supabase
+        .from("user_quests")
+        .select("quest_id, completed")
+        .eq("user_id", user.id);
+      if (data && data.length > 0) {
+        setQuests((prev) =>
+          prev.map((q) => {
+            const dbQuest = data.find((d) => d.quest_id === q.id);
+            return dbQuest ? { ...q, completed: dbQuest.completed } : q;
+          })
+        );
+      }
+    };
+    loadQuests();
+  }, [user]);
 
   const completedCount = quests.filter((q) => q.completed).length;
   const safetyScore = completedCount * 20;
@@ -89,9 +110,15 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     saveState({ quests, alerts, advisorMessages, scansCompleted, threatsBlocked });
   }, [quests, alerts, advisorMessages, scansCompleted, threatsBlocked]);
 
-  const toggleQuest = useCallback((id: number) => {
-    setQuests((prev) => prev.map((q) => (q.id === id ? { ...q, completed: !q.completed } : q)));
-  }, []);
+  const verifyQuest = useCallback(async (id: number) => {
+    if (!user) return;
+    // Persist to Supabase
+    await supabase
+      .from("user_quests")
+      .upsert({ user_id: user.id, quest_id: id, completed: true, completed_at: new Date().toISOString() }, { onConflict: "user_id,quest_id" });
+
+    setQuests((prev) => prev.map((q) => (q.id === id ? { ...q, completed: true } : q)));
+  }, [user]);
 
   const addAlert = useCallback((alert: Omit<AlertItem, "id">) => {
     setAlerts((prev) => [{ ...alert, id: Date.now() }, ...prev]);
@@ -111,7 +138,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
       value={{
         userName, userEmail, safetyScore, quests, alerts, advisorMessages,
         scansCompleted, threatsBlocked,
-        toggleQuest, addAlert, clearAlerts, addAdvisorMessage, incrementScans, incrementThreats,
+        verifyQuest, addAlert, clearAlerts, addAdvisorMessage, incrementScans, incrementThreats,
       }}
     >
       {children}

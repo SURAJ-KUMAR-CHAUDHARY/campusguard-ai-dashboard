@@ -1,4 +1,6 @@
-import { Shield, User, Bell } from "lucide-react";
+import { Shield, User, Bell, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   safetyScore: number;
@@ -6,6 +8,13 @@ interface HeaderProps {
 }
 
 const Header = ({ safetyScore, userName }: HeaderProps) => {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/login", { replace: true });
+  };
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-success neon-text-green";
     if (score >= 60) return "text-warning neon-text-orange";
@@ -99,6 +108,13 @@ const Header = ({ safetyScore, userName }: HeaderProps) => {
             <User className="w-5 h-5 text-primary-foreground" />
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          className="p-2 rounded-xl hover:bg-destructive/20 transition-colors group"
+          title="Logout"
+        >
+          <LogOut className="w-5 h-5 text-muted-foreground group-hover:text-destructive transition-colors" />
+        </button>
       </div>
     </header>
   );
