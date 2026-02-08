@@ -12,7 +12,7 @@ const AISecurityAdvisor = () => {
     setMessage("");
 
     // Simple AI-like response
-    if (text.includes("http") || text.includes("scam") || text.includes(".exe")) {
+    if (text.includes("http") || text.includes("scam") || text.includes(".exe") || text.includes("free")) {
       addAdvisorMessage("Bhai, yeh link khatarnak lag raha hai, dur raho! 🚨");
     } else if (text.includes("password")) {
       addAdvisorMessage("Strong password use karo — mix of letters, numbers aur symbols. 🔐");
